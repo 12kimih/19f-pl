@@ -1,10 +1,29 @@
-type team = Korea | France | Usa | Brazil | Japan | Nigeria | Cameroon | Poland | Portugal | Italy | Germany | Norway | Sweden | England | Argentina
-type tourna = LEAF of team | NODE of tourna * tourna
+type team =
+  | Korea
+  | France
+  | USA
+  | Brazil
+  | Japan
+  | Nigeria
+  | Cameroon
+  | Poland
+  | Portugal
+  | Italy
+  | Germany
+  | Norway
+  | Sweden
+  | England
+  | Argentina
 
-let string_of_tag t = match t with
+type tourna =
+  | LEAF of team
+  | NODE of tourna * tourna
+
+let string_of_tag t =
+  match t with
   | Korea -> "Korea"
   | France -> "France"
-  | Usa -> "Usa"
+  | USA -> "USA"
   | Brazil -> "Brazil"
   | Japan -> "Japan"
   | Nigeria -> "Nigeria"
@@ -18,8 +37,10 @@ let string_of_tag t = match t with
   | England -> "England"
   | Argentina -> "Argentina"
 
-let rec parenize t = match t with
+let rec parenize t =
+  match t with
   | LEAF l -> string_of_tag l
   | NODE (nl, nr) -> "(" ^ parenize nl ^ " " ^ parenize nr ^ ")"
 
+(* test *)
 let () = print_endline (parenize(NODE(NODE(LEAF Korea, LEAF Portugal), LEAF Brazil)))
