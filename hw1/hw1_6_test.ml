@@ -21,14 +21,14 @@ let rec crazy2val n =
   | ONE k -> crazy2val k + power_of_2 (len k)
   | MONE k -> crazy2val k - power_of_2 (len k)
 
-let rec append_crazy2 n1 n2 =
-  match n1 with
-  | NIL -> n2
-  | ZERO n1_tl -> ZERO (append_crazy2 n1_tl n2)
-  | ONE n1_tl -> ONE (append_crazy2 n1_tl n2)
-  | MONE n1_tl -> MONE (append_crazy2 n1_tl n2)
-
 let crazy2add n1 n2 =
+  let rec append_crazy2 n1 n2 =
+    match n1 with
+    | NIL -> n2
+    | ZERO n1_tl -> ZERO (append_crazy2 n1_tl n2)
+    | ONE n1_tl -> ONE (append_crazy2 n1_tl n2)
+    | MONE n1_tl -> MONE (append_crazy2 n1_tl n2)
+  in
   let rec crazy2repr n =
     if n = 0 then ZERO NIL else
     if (n mod 2) = 1 then append_crazy2 (crazy2repr (n / 2)) (ONE NIL) else
