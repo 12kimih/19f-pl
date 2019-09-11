@@ -1,7 +1,7 @@
 type team =
   | Korea
   | France
-  | USA
+  | Usa
   | Brazil
   | Japan
   | Nigeria
@@ -23,7 +23,7 @@ let string_of_team t =
   match t with
   | Korea -> "Korea"
   | France -> "France"
-  | USA -> "USA"
+  | Usa -> "Usa"
   | Brazil -> "Brazil"
   | Japan -> "Japan"
   | Nigeria -> "Nigeria"
