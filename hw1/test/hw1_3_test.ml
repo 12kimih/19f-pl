@@ -43,4 +43,4 @@ let rec parenize t =
   | NODE (nl, nr) -> "(" ^ parenize nl ^ " " ^ parenize nr ^ ")"
 
 (* test *)
-let () = print_endline (parenize(NODE(NODE(LEAF Korea, LEAF Portugal), LEAF Brazil)))
+let () = print_endline (parenize (NODE(NODE(LEAF Korea, LEAF Portugal), LEAF Brazil)))
