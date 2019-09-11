@@ -19,7 +19,7 @@ type tourna =
   | LEAF of team
   | NODE of tourna * tourna
 
-let string_of_tag t =
+let string_of_team t =
   match t with
   | Korea -> "Korea"
   | France -> "France"
@@ -39,5 +39,5 @@ let string_of_tag t =
 
 let rec parenize t =
   match t with
-  | LEAF l -> string_of_tag l
+  | LEAF l -> string_of_team l
   | NODE (nl, nr) -> "(" ^ parenize nl ^ " " ^ parenize nr ^ ")"
