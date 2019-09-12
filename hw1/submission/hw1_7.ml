@@ -13,7 +13,7 @@ let rec eval e =
   | MINUS (e1, e2) -> eval e1 - eval e2
   | MULT (e1, e2) -> eval e1 * eval e2
   | DIVIDE (e1, e2) -> eval e1 / eval e2
-  | MAX i ->
-    match i with
+  | MAX expr_list ->
+    match expr_list with
     | [] -> 0
-    | x :: y -> if (eval x) > (eval (MAX y)) then (eval x) else (eval (MAX y))
+    | hd :: tl -> if (eval hd) > (eval (MAX tl)) then (eval hd) else (eval (MAX tl))
