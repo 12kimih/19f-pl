@@ -23,6 +23,7 @@ let rec crazy2val n =
   | MONE tl -> crazy2val tl - power_of_2 (crazy2len tl)
 *)
 
+(*
 let rec crazy2append n1 n2 =
   match n1 with
   | NIL -> n2
@@ -45,7 +46,15 @@ let crazy2val n =
     | ONE tl -> 2 * crazy2val_rev tl + 1
     | MONE tl -> 2 * crazy2val_rev tl - 1
   in crazy2val_rev (crazy2reverse n)
+*)
+
+let rec crazy2val n =
+  match n with
+  | NIL -> 0
+  | ZERO tl -> 2 * crazy2val tl
+  | ONE tl -> 2 * crazy2val tl + 1
+  | MONE tl -> 2 * crazy2val tl - 1
 
 (* test *)
-let n = MONE(MONE(MONE NIL))
+let n = MONE(ONE(ZERO NIL))
 let () = print_endline (string_of_int (crazy2val n))

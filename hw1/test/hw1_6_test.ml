@@ -4,6 +4,29 @@ type crazy2 =
   | ONE of crazy2
   | MONE of crazy2
 
+let rec crazy2add n1 n2 =
+  match n1 with
+  | NIL -> n2
+  | ZERO tl1 ->
+    (match n2 with
+    | NIL -> n1
+    | ZERO tl2 -> ZERO (crazy2add tl1 tl2) 
+    | ONE tl2 -> ONE (crazy2add tl1 tl2)
+    | MONE tl2 -> MONE (crazy2add tl1 tl2))
+  | ONE tl1 ->
+    (match n2 with
+    | NIL -> n1
+    | ZERO tl2 -> ONE (crazy2add tl1 tl2)
+    | ONE tl2 -> ZERO (crazy2add (ONE NIL) (crazy2add tl1 tl2))
+    | MONE tl2 -> ZERO (crazy2add tl1 tl2))
+  | MONE tl1 ->
+    (match n2 with
+    | NIL -> n1
+    | ZERO tl2 -> MONE (crazy2add tl1 tl2)
+    | ONE tl2 -> ZERO (crazy2add tl1 tl2)
+    | MONE tl2 -> ZERO (crazy2add (MONE NIL) (crazy2add tl1 tl2)))
+
+(* test *)
 let rec crazy2append n1 n2 =
   match n1 with
   | NIL -> n2
@@ -25,41 +48,43 @@ let rec crazy2trim n =
   | ONE tl -> n
   | MONE tl -> n
 
+(*
 let crazy2add n1 n2 =
-  let rec crazy2add_rev n1 n2 =
+  let rec crazy2add n1 n2 =
     match n1 with
     | NIL -> n2
     | ZERO tl1 ->
       (match n2 with
       | NIL -> n1
-      | ZERO tl2 -> crazy2append (ZERO NIL) (crazy2add_rev tl1 tl2) 
-      | ONE tl2 -> crazy2append (ONE NIL) (crazy2add_rev tl1 tl2)
-      | MONE tl2 -> crazy2append (MONE NIL) (crazy2add_rev tl1 tl2))
+      | ZERO tl2 -> crazy2append (ZERO NIL) (crazy2add tl1 tl2) 
+      | ONE tl2 -> crazy2append (ONE NIL) (crazy2add tl1 tl2)
+      | MONE tl2 -> crazy2append (MONE NIL) (crazy2add tl1 tl2))
     | ONE tl1 ->
       (match n2 with
       | NIL -> n1
-      | ZERO tl2 -> crazy2append (ONE NIL) (crazy2add_rev tl1 tl2)
-      | ONE tl2 -> crazy2append (ZERO NIL) (crazy2add_rev (ONE NIL) (crazy2add_rev tl1 tl2))
-      | MONE tl2 -> crazy2append (ZERO NIL) (crazy2add_rev tl1 tl2))
+      | ZERO tl2 -> crazy2append (ONE NIL) (crazy2add tl1 tl2)
+      | ONE tl2 -> crazy2append (ZERO NIL) (crazy2add (ONE NIL) (crazy2add tl1 tl2))
+      | MONE tl2 -> crazy2append (ZERO NIL) (crazy2add tl1 tl2))
     | MONE tl1 ->
       (match n2 with
       | NIL -> n1
-      | ZERO tl2 -> crazy2append (MONE NIL) (crazy2add_rev tl1 tl2)
-      | ONE tl2 -> crazy2append (ZERO NIL) (crazy2add_rev tl1 tl2)
-      | MONE tl2 -> crazy2append (ZERO NIL) (crazy2add_rev (MONE NIL) (crazy2add_rev tl1 tl2)))
-  in crazy2trim (crazy2reverse (crazy2add_rev (crazy2reverse n1) (crazy2reverse n2)))
+      | ZERO tl2 -> crazy2append (MONE NIL) (crazy2add tl1 tl2)
+      | ONE tl2 -> crazy2append (ZERO NIL) (crazy2add tl1 tl2)
+      | MONE tl2 -> crazy2append (ZERO NIL) (crazy2add (MONE NIL) (crazy2add tl1 tl2)))
+  in crazy2trim (crazy2reverse (crazy2add (crazy2reverse n1) (crazy2reverse n2)))
+*)
 
-(* test *)
-let crazy2val n =
-  let rec crazy2val_rev n =
-    match n with
-    | NIL -> 0
-    | ZERO tl -> 2 * crazy2val_rev tl
-    | ONE tl -> 2 * crazy2val_rev tl + 1
-    | MONE tl -> 2 * crazy2val_rev tl - 1
-  in crazy2val_rev (crazy2reverse n)
+let crazy2trim_rev n = crazy2reverse (crazy2trim (crazy2reverse n))
+
+let rec crazy2val n =
+  match n with
+  | NIL -> 0
+  | ZERO tl -> 2 * crazy2val tl
+  | ONE tl -> 2 * crazy2val tl + 1
+  | MONE tl -> 2 * crazy2val tl - 1
 
 (*
+(* crazy2val in this code is meant to be for the real order of binary numbers *)
 let rec crazy2repr n =
   if n = 0 then NIL else
   if (n mod 2) = 1 then crazy2append (crazy2repr (n / 2)) (ONE NIL) else
@@ -68,8 +93,8 @@ let rec crazy2repr n =
 let crazy2add n1 n2 = crazy2repr (crazy2val n1 + crazy2val n2)
 *)
 
-let n1 = ONE(MONE(ZERO NIL))
-let n2 = MONE(ONE(ONE(MONE(MONE NIL))))
+let n1 = ONE(MONE(ONE(ZERO(ONE NIL))))
+let n2 = ONE(ONE(MONE(ONE(MONE NIL))))
 
 let rec crazy2show n =
   match n with
@@ -78,6 +103,6 @@ let rec crazy2show n =
   | ONE tl -> "ONE(" ^ (crazy2show tl) ^ ")"
   | MONE tl -> "MONE(" ^ (crazy2show tl) ^ ")"
 
-let () = print_endline (crazy2show (crazy2add n1 n2))
+let () = print_endline (crazy2show (crazy2trim_rev (crazy2add n1 n2)))
 let () = print_endline (string_of_int (crazy2val (crazy2add n1 n2)))
 let () = print_endline ("Expected value: " ^ string_of_int (crazy2val n1 + crazy2val n2))
