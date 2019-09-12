@@ -1,8 +1,3 @@
-type expr =
-  | NUM of int
-  | PLUS of expr * expr
-  | MINUS of expr * expr
-
 type formula =
   | TRUE
   | FALSE
@@ -11,6 +6,10 @@ type formula =
   | ORELSE of formula * formula
   | IMPLY of formula * formula
   | LESS of expr * expr
+and expr =
+  | NUM of int
+  | PLUS of expr * expr
+  | MINUS of expr * expr
 
 let rec eval_expr e =
   match e with
