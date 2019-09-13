@@ -4,27 +4,27 @@ type crazy2 =
   | ONE of crazy2
   | MONE of crazy2
 
-let rec crazy2add n1 n2 =
+let rec crazy2add (n1, n2) =
   match n1 with
   | NIL -> n2
   | ZERO tl1 ->
     (match n2 with
     | NIL -> n1
-    | ZERO tl2 -> ZERO (crazy2add tl1 tl2) 
-    | ONE tl2 -> ONE (crazy2add tl1 tl2)
-    | MONE tl2 -> MONE (crazy2add tl1 tl2))
+    | ZERO tl2 -> ZERO (crazy2add (tl1, tl2)) 
+    | ONE tl2 -> ONE (crazy2add (tl1, tl2))
+    | MONE tl2 -> MONE (crazy2add (tl1, tl2)))
   | ONE tl1 ->
     (match n2 with
     | NIL -> n1
-    | ZERO tl2 -> ONE (crazy2add tl1 tl2)
-    | ONE tl2 -> ZERO (crazy2add (ONE NIL) (crazy2add tl1 tl2))
-    | MONE tl2 -> ZERO (crazy2add tl1 tl2))
+    | ZERO tl2 -> ONE (crazy2add (tl1, tl2))
+    | ONE tl2 -> ZERO (crazy2add (ONE NIL, crazy2add (tl1, tl2)))
+    | MONE tl2 -> ZERO (crazy2add (tl1, tl2)))
   | MONE tl1 ->
     (match n2 with
     | NIL -> n1
-    | ZERO tl2 -> MONE (crazy2add tl1 tl2)
-    | ONE tl2 -> ZERO (crazy2add tl1 tl2)
-    | MONE tl2 -> ZERO (crazy2add (MONE NIL) (crazy2add tl1 tl2)))
+    | ZERO tl2 -> MONE (crazy2add (tl1, tl2))
+    | ONE tl2 -> ZERO (crazy2add (tl1, tl2))
+    | MONE tl2 -> ZERO (crazy2add (MONE NIL, crazy2add (tl1, tl2))))
 
 (* test *)
 let rec crazy2append n1 n2 =
@@ -94,7 +94,7 @@ let crazy2add n1 n2 = crazy2repr (crazy2val n1 + crazy2val n2)
 *)
 
 let n1 = ONE(MONE(ONE(ZERO(ONE NIL))))
-let n2 = ONE(ONE(MONE(ONE(MONE NIL))))
+let n2 = ONE(ONE(ONE(ONE(MONE NIL))))
 
 let rec crazy2show n =
   match n with
@@ -103,6 +103,6 @@ let rec crazy2show n =
   | ONE tl -> "ONE(" ^ (crazy2show tl) ^ ")"
   | MONE tl -> "MONE(" ^ (crazy2show tl) ^ ")"
 
-let () = print_endline (crazy2show (crazy2trim_rev (crazy2add n1 n2)))
-let () = print_endline (string_of_int (crazy2val (crazy2add n1 n2)))
+let () = print_endline (crazy2show (crazy2trim_rev (crazy2add (n1, n2))))
+let () = print_endline (string_of_int (crazy2val (crazy2add (n1, n2))))
 let () = print_endline ("Expected value: " ^ string_of_int (crazy2val n1 + crazy2val n2))
