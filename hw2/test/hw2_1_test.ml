@@ -49,9 +49,10 @@ let rec calculate e =
     if e1_val > e2_val +. 0.1 then ~-.(calculate (INTEGRAL (REAL e2_val, REAL e1_val, e3))) else
     if e1_val < e2_val -. 0.1 then substitute e3 e1_val *. 0.1 +. calculate (INTEGRAL (REAL (e1_val +. 0.1), REAL e2_val, e3)) else 0.0
 
+(* test *)
 let a = SIGMA(INT 1, INT 10, SUB(MUL(X, X), INT 1))
 let b = INTEGRAL(REAL 10.0, REAL 1.0, SUB(MUL(X, X), INT 1))
 let () = print_float (calculate a)
-let () = print_endline ""
+let () = print_char '\n'
 let () = print_float (calculate b)
-let () = print_endline ""
+let () = print_char '\n'
