@@ -17,8 +17,25 @@ let rec diff (e, var) =
   | TIMES ae_list ->
     ( match ae_list with
       | [] -> raise InvalidArgument
-      | hd :: tl -> SUM [TIMES [diff (hd, var); TIMES tl]; TIMES[hd; diff (TIMES tl, var)]] )
+      | hd :: tl -> 
+      ( match tl with
+        | [] -> diff (hd, var)
+        | _ -> SUM [TIMES [diff (hd, var); TIMES tl]; TIMES[hd; diff (TIMES tl, var)]] ) )
   | SUM ae_list ->
     ( match ae_list with
       | [] -> raise InvalidArgument
-      | hd :: tl -> SUM [diff (hd, var); diff (SUM tl, var)] )
+      | hd :: tl -> 
+      ( match tl with
+        | [] -> diff (hd, var)
+        | _ -> SUM [diff (hd, var); diff (SUM tl, var)] ) )
+
+
+let _ = diff (VAR "X", "X")
+
+let _ = diff (VAR "Y", "X")
+
+let _ = diff (SUM [VAR "X"; CONST 3; POWER ("X", 3); POWER ("Y", 2)], "X")
+
+let _ = diff (TIMES [VAR "X"; SUM [VAR "X"; CONST 2]; POWER ("X", 2)], "X")
+
+let _ = diff (SUM [TIMES [VAR "a"; POWER ("X", 2)]; TIMES [VAR "b"; VAR "X"]; VAR "c"], "X")
