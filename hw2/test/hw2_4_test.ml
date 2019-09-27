@@ -11,8 +11,7 @@ end
 module IntListQ =
 struct
   type element = int list
-  type stack = element list
-  type queue = stack * stack
+  type queue = element list * element list
   exception EMPTY_Q
   let emptyQ : queue = ([], [])
   let enQ (((s1, s2), e) : queue * element) : queue = (e :: s1, s2)
@@ -127,6 +126,7 @@ let printQ (s1, s2) =
         print_stack (reverse_list s2);
         print_char '\n' )
 
+(*
 let myQ = IntListQ.emptyQ
 let yourQ1 = IntListQ.enQ(myQ, [1; 2; 3])
 let yourQ2 = IntListQ.enQ(yourQ1, [2; 3; 4])
@@ -142,3 +142,33 @@ let () = print_element x
 let () = print_char '\n'
 let () = printQ restQ
 let () = printQ hisQ
+*)
+
+let myQ = IntListQ.emptyQ
+let yourQ = IntListQ.enQ (myQ, [1])
+let (x, restQ) = IntListQ.deQ yourQ
+let hisQ = IntListQ.enQ (myQ, [2])
+
+let q1 = IntListQ.enQ (myQ, [1; 2; 3; 4; 5])
+let q2 = IntListQ.enQ (q1, [1; 2; 3])
+let q3 = IntListQ.enQ (q2, [1; 2])
+
+let e4, q4 = IntListQ.deQ q3
+let e5, q5 = IntListQ.deQ q4
+let e6, q6 = IntListQ.deQ q5
+
+let q7 = IntListQ.enQ (q6, [1; 3; 5])
+let q8 = IntListQ.enQ (q7, [2; 4; 6])
+
+let e9, q9 = IntListQ.deQ q8
+
+let q10 = IntListQ.enQ (q9, [9; 8])
+
+let e11, q11 = IntListQ.deQ q10
+
+let q12 = IntListQ.enQ (q11, [7])
+let q13 = IntListQ.enQ (q12, [8])
+
+let e14, q14 = IntListQ.deQ q13
+let e15, q15 = IntListQ.deQ q14
+let e16, q16 = IntListQ.deQ q15

@@ -6,8 +6,8 @@ and value = int
 
 exception EmptyHeap
 
-let rank =
-  function
+let rank h =
+  match h with
   | EMPTY -> -1
   | NODE (r, _, _, _) -> r
 
@@ -38,3 +38,33 @@ let deleteMin h =
   match h with
   | EMPTY -> raise EmptyHeap
   | NODE (_, x, lh, rh) -> merge(lh, rh)
+
+  (* test *)
+
+let _ = merge (EMPTY, EMPTY)
+
+let _ = merge (EMPTY, NODE (0, 17, EMPTY, EMPTY))
+
+let _ = merge (NODE (0, 17, EMPTY, EMPTY), EMPTY)
+
+let h1 = merge (NODE (0, 20, EMPTY, EMPTY), NODE (0, 50, EMPTY, EMPTY))
+
+let h2 = merge (h1, NODE (0, 99, EMPTY, EMPTY))
+
+let h3 = merge (NODE (0, 7, EMPTY, EMPTY), h2)
+
+let h4 = merge (NODE (0, 25, EMPTY, EMPTY), h3)
+
+let h5 = merge (NODE (0, 5, EMPTY, EMPTY), NODE (0, 10, EMPTY, EMPTY))
+
+let h6 = merge (NODE (0, 15, EMPTY, EMPTY), h5)
+
+let h7 = merge (h4, NODE (0, 1, EMPTY, EMPTY))
+
+let h8 = merge (h7, h6)
+
+let h9 = merge (NODE (0, 22, EMPTY, EMPTY), NODE (0, 75, EMPTY, EMPTY))
+
+let h10 = merge (h9, h8)
+
+let _ = deleteMin h10
