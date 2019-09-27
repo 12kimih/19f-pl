@@ -27,7 +27,7 @@ struct
       ( match s2_new with
         | [] -> raise EMPTY_Q
         | hd :: tl -> (hd, (s1_new, tl)) )
-    | hd::tl -> (hd, (s1, tl))
+    | hd :: tl -> (hd, (s1, tl))
 end
 
 (* test *)
