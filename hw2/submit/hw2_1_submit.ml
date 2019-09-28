@@ -22,12 +22,12 @@ let rec calculate e =
     | MUL (e1, e2) -> substitute e1 n *. substitute e2 n
     | DIV (e1, e2) -> substitute e1 n /. substitute e2 n
     | SIGMA (e1, e2, e3) ->
-      let e1_val = int_of_float (calculate e1) in
-      let e2_val = int_of_float (calculate e2) in
+      let e1_val = int_of_float (substitute e1 n) in
+      let e2_val = int_of_float (substitute e2 n) in
       if e1_val <= e2_val then substitute e3 (float_of_int e1_val) +. substitute (SIGMA (INT (e1_val + 1), INT e2_val, e3)) n else 0.0
     | INTEGRAL (e1, e2, e3) ->
-      let e1_val = calculate e1 in
-      let e2_val = calculate e2 in
+      let e1_val = substitute e1 n in
+      let e2_val = substitute e2 n in
       if e1_val > e2_val +. 0.1 then ~-.(substitute (INTEGRAL (REAL e2_val, REAL e1_val, e3)) n) else
       if e1_val < e2_val -. 0.1 then substitute e3 e1_val *. 0.1 +. substitute (INTEGRAL (REAL (e1_val +. 0.1), REAL e2_val, e3)) n else 0.0
   in
