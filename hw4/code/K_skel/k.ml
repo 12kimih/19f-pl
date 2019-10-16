@@ -203,6 +203,54 @@ struct
     with Env.Not_bound -> raise (Error "Unbound")
 
   let rec eval mem env e =
+    let rec eval_arg_list mem env arg_list =
+      match arg_list with
+      | [] -> ([], mem)
+      | hd :: tl ->
+        let (val_hd, mem_hd) = eval mem env hd in
+        let (val_tl, mem_tl) = eval_arg_list mem_hd env tl in
+        (val_hd :: val_tl, mem_tl)
+    in
+    let rec bind_val_list mem env id_list val_list =
+      match id_list with
+      | [] -> 
+        (match val_list with
+        | [] -> (env, mem)
+        | _ -> raise (Error "InvalidArg"))
+      | id_hd :: id_tl ->
+        (match val_list with
+        | [] -> raise (Error "InvalidArg")
+        | val_hd :: val_tl ->
+          let (l, mem_alloc) = Mem.alloc mem in
+          bind_val_list (Mem.store mem_alloc l val_hd) (Env.bind env id_hd (Addr l)) id_tl val_tl)
+    in
+    let rec bind_id_list f_env env f_id_list id_list =
+      match f_id_list with
+      | [] ->
+        (match id_list with
+        | [] -> f_env
+        | _ -> raise (Error "InvalidArg"))
+      | f_id_hd :: f_id_tl ->
+        (match id_list with
+        | [] -> raise (Error "InvalidArg")
+        | id_hd :: id_tl ->
+          bind_id_list (Env.bind f_env f_id_hd (Addr (lookup_env_loc env id_hd))) env f_id_tl id_tl)
+    in
+    let record_empty = fun x -> raise (Error "Not_bound") in
+    let record_bind record id loc = fun x -> if x = id then loc else record x in
+    let rec record_bind_val_list mem record id_list val_list =
+      match id_list with
+      | [] -> 
+        (match val_list with
+        | [] -> (record, mem)
+        | _ -> raise (Error "InvalidRecord"))
+      | id_hd :: id_tl ->
+        (match val_list with
+        | [] -> raise (Error "InvalidRecord")
+        | val_hd :: val_tl ->
+          let (l, mem_alloc) = Mem.alloc mem in
+          record_bind_val_list (Mem.store mem_alloc l val_hd) (record_bind record id_hd l) id_tl val_tl)
+    in
     match e with
     | READ x -> 
       let v = Num (read_int()) in
@@ -221,7 +269,80 @@ struct
       let (v, mem') = eval mem env e in
       let l = lookup_env_loc env x in
       (v, Mem.store mem' l v)
-    | _ -> failwith "Unimplemented" (* TODO : Implement rest of the cases *)
+    | NUM n -> (Num n, mem)
+    | TRUE -> (Bool true, mem)
+    | FALSE -> (Bool false, mem)
+    | UNIT -> (Unit, mem)
+    | VAR x -> (Mem.load mem (lookup_env_loc env x), mem)
+    | ADD (e1, e2) ->
+      let (v1, mem1) = eval mem env e1 in
+      let (v2, mem2) = eval mem1 env e2 in
+      (Num (value_int v1 + value_int v2), mem2)
+    | SUB (e1, e2) ->
+      let (v1, mem1) = eval mem env e1 in
+      let (v2, mem2) = eval mem1 env e2 in
+      (Num (value_int v1 - value_int v2), mem2)
+    | MUL (e1, e2) ->
+      let (v1, mem1) = eval mem env e1 in
+      let (v2, mem2) = eval mem1 env e2 in
+      (Num (value_int v1 * value_int v2), mem2)
+    | DIV (e1, e2) ->
+      let (v1, mem1) = eval mem env e1 in
+      let (v2, mem2) = eval mem1 env e2 in
+      (Num (value_int v1 / value_int v2), mem2)
+    | EQUAL (e1, e2) ->
+      let (v1, mem1) = eval mem env e1 in
+      let (v2, mem2) = eval mem1 env e2 in
+      (Bool (v1 = v2), mem2)
+    | LESS (e1, e2) ->
+      let (v1, mem1) = eval mem env e1 in
+      let (v2, mem2) = eval mem1 env e2 in
+      (Bool (value_int v1 < value_int v2), mem2)
+    | NOT e ->
+      let (v1, mem1) = eval mem env e in
+      (Bool (not (value_bool v1)), mem1)
+    | SEQ (e1, e2) ->
+      let (v1, mem1) = eval mem env e1 in
+      let (v2, mem2) = eval mem1 env e2 in
+      (v2, mem2)
+    | IF (e1, e2, e3) ->
+      let (v1, mem1) = eval mem env e1 in
+      if value_bool v1 then eval mem1 env e2 else eval mem1 env e3
+    | WHILE (e1, e2) ->
+      let (v1, mem1) = eval mem env e1 in
+      if value_bool v1
+      then
+        let (v2, mem2) = eval mem1 env e2 in
+        eval mem2 env (WHILE (e, e1))
+      else (Unit, mem1)
+    | LETF (f, id_list, e1, e2) ->
+      eval mem (Env.bind env f (Proc (id_list, e1, env))) e2
+    | CALLV (f, arg_list) ->
+      let (f_id_list, f_exp, f_env) = lookup_env_proc env f in
+      let (val_list, mem_arg) = eval_arg_list mem env arg_list in
+      let (env_bind, mem_bind) = bind_val_list mem_arg f_env f_id_list val_list in
+      eval mem_bind (Env.bind env_bind f (Proc (f_id_list, f_exp, f_env))) f_exp
+    | CALLR (f, id_list) ->
+      let (f_id_list, f_exp, f_env) = lookup_env_proc env f in
+      let env_let = bind_id_list f_env env f_id_list id_list in
+      eval mem (Env.bind env_let f (Proc (f_id_list, f_exp, f_env))) f_exp
+    | RECORD id_exp_list ->
+      (match id_exp_list with
+      | [] -> (Unit, mem)
+      | _ ->
+        let (id_list, exp_list) = List.split id_exp_list in
+        let (val_list, mem_arg) = eval_arg_list mem env exp_list in
+        let (record, mem_bind) = record_bind_val_list mem_arg record_empty id_list val_list in
+        (Record record, mem_bind))
+    | FIELD (e, id) ->
+      let (v1, mem1) = eval mem env e in
+      let record = value_record v1 in
+      (Mem.load mem1 (record id), mem1)
+    | ASSIGNF (e1, id, e2) ->
+      let (v1, mem1) = eval mem env e1 in
+      let record = value_record v1 in
+      let (v2, mem2) = eval mem1 env e2 in
+      (v2, Mem.store mem2 (record id) v2)
 
   let run (mem, env, pgm) = 
     let (v, _ ) = eval mem env pgm in
