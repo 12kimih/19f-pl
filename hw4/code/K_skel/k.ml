@@ -313,7 +313,7 @@ struct
       if value_bool v1
       then
         let (v2, mem2) = eval mem1 env e2 in
-        eval mem2 env (WHILE (e, e1))
+        eval mem2 env (WHILE (e1, e2))
       else (Unit, mem1)
     | LETF (f, id_list, e1, e2) ->
       eval mem (Env.bind env f (Proc (id_list, e1, env))) e2

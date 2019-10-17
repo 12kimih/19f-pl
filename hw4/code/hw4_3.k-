@@ -1,0 +1,89 @@
+let proc leaf(n) = {val := n, lchild := {}, rchild := {}} in
+let proc makeLtree(n, tree) = {val := n, lchild := tree, rchild := {}} in
+let proc makeRtree(n, tree) = {val := n, lchild := {}, rchild := tree} in
+let proc makeTree(n, ltree, rtree) = {val := n, lchild := ltree, rchild := rtree} in
+
+let proc isEmpty(tree) = if tree = {} then true else false in
+let proc rTree(tree) = tree.rchild in
+let proc lTree(tree) = tree.lchild in
+let proc nodeVal(tree) = tree.val in
+
+let proc dft(tree) =
+  if isEmpty<tree>
+  then unit
+  else (
+    write nodeVal<tree>;
+    dft(lTree<tree>);
+    dft(rTree<tree>)
+  )
+in
+
+let proc bft(tree) =
+  if isEmpty<tree>
+  then unit
+  else (
+    let proc queue_insert(queue, node) = queue.s1 := {hd := node, tl := queue.s1} in
+    let proc queue_empty(queue) =
+      if queue.s1 = {}
+      then (
+        if queue.s2 = {}
+        then true
+        else false
+      )
+      else false
+    in
+    let proc queue_move(queue) =
+      if queue.s1 = {}
+      then unit
+      else (
+        queue.s2 := {hd := queue.s1.hd, tl := queue.s2};
+        queue.s1 := queue.s1.tl;
+        queue_move<queue>
+      )
+    in
+    let proc queue_pop(queue) =
+      if queue.s2 = {}
+      then (
+        queue_move<queue>;
+        if queue.s2 = {}
+        then unit
+        else (
+          let node := queue.s2.hd in
+          queue.s2 := queue.s2.tl;
+          node
+        )
+      )
+      else (
+        let node := queue.s2.hd in
+        queue.s2 := queue.s2.tl;
+        node
+      )
+    in
+    let queue := {s1 := {}, s2 := {hd := tree, tl := {}}} in
+    while(not (queue_empty<queue>))
+    do (
+      let node := queue_pop<queue> in
+      let ltree := lTree<node> in
+      let rtree := rTree<node> in
+      write nodeVal<node>;
+      if isEmpty<ltree>
+      then unit
+      else queue_insert<queue, ltree>;
+      if isEmpty<rtree>
+      then unit
+      else queue_insert<queue, rtree>
+    )
+  )
+in
+
+let tree1 := leaf(2) in
+let tree2 := leaf(3) in
+let tree3 := makeTree(1, tree1, tree2) in
+let n1 := 4 in
+let n2 := 5 in
+let n3 := 6 in
+let tree4 := makeRtree(n1, tree3) in
+let tree5 := makeLtree(n2, tree3) in
+let tree6 := makeTree(n3, tree4, tree5) in
+bft(tree6)
+(* Output : prints out "6\n4\n1\n2\n3\n5\n1\n2\n3\n" *)
