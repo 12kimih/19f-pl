@@ -75,23 +75,4 @@ let proc bft(tree) =
     )
   )
 in
-
-let tree1 := leaf(2) in
-let tree2 := leaf(3) in
-let tree3 := makeTree(1, tree1, tree2) in
-let n1 := 4 in
-let n2 := 5 in
-let n3 := 6 in
-let tree4 := makeRtree(n1, tree3) in
-let tree5 := makeLtree(n2, tree3) in
-let tree6 := makeTree(n3, tree4, tree5) in
-bft(tree6);
-if isEmpty(rTree(makeLtree (1, leaf (2)))) then write (1) else write (0);
-if isEmpty(lTree(makeRtree (1, leaf (2)))) then write (1) else write (0)
-
-(*
-Output :
-dft -> "6\n4\n1\n2\n3\n5\n1\n2\n3\n"
-bft -> "6\n4\n5\n1\n1\n2\n3\n2\n3\n"
-isEmpty test -> "1\n1\n"
-*)
+2019
