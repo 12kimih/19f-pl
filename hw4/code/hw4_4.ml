@@ -210,6 +210,17 @@ let e5 = Branch (e2, Branch (e5_2, End StarBox))
 let e6 = Branch (e2, e5_2)
 let e7 = Branch (e1, End StarBox)
 
+let e8 = Branch (End (NameBox "x"), End (NameBox "y"))
+let e9 = Guide ("y", e8)
+let e10 = Guide ("x", e9)
+let e11 = Guide ("z", End (NameBox "z"))
+let e12 = Branch (e10, e11)
+let e13 = Branch (e12, e2)
+let e14 = Branch (e12, e5_1)
+let e15 = Branch (e12, End (NameBox "z"))
+let e16 = Branch (e12, Guide ("w", End (NameBox "w")))
+let e17 = Branch (e12, Guide ("w", Branch (End (NameBox "w"), End (NameBox "u"))))
+
 let getReady_exception map =
   try getReady map
   with IMPOSSIBLE -> []
@@ -221,3 +232,40 @@ let res4 = getReady_exception e4
 let res5 = getReady_exception e5
 let res6 = getReady_exception e6
 let res7 = getReady_exception e7
+
+let res8 = getReady_exception e8
+let res9 = getReady_exception e9
+let res10 = getReady_exception e10
+let res11 = getReady_exception e11
+let res12 = getReady_exception e12
+let res13 = getReady_exception e13
+let res14 = getReady_exception e14
+let res15 = getReady_exception e15
+let res16 = getReady_exception e16
+let res17 = getReady_exception e17
+
+(*
+# res8;;
+- : key list = [Bar; Node (Bar, Bar)]
+# res9;;
+- : key list = [Node (Bar, Bar); Bar]
+# res10;;
+- : key list = [Bar; Node (Bar, Bar)]
+# res11;;
+- : key list = [Bar]
+# res12;;
+- : key list = [Bar; Node (Bar, Bar)]
+# res13;;
+- : key list = []
+# res14;;
+- : key list = [Bar; Node (Bar, Bar)]
+# res15;;
+- : key list = [Bar; Node (Bar, Bar)]
+# res16;;
+- : key list =
+[Bar; Node (Bar, Bar); Node (Node (Bar, Bar), Node (Bar, Bar))]
+# res17;;
+- : key list =
+[Bar; Node (Bar, Bar); Node (Node (Bar, Bar), Bar);
+ Node (Node (Node (Bar, Bar), Bar), Node (Node (Bar, Bar), Bar))]
+*)
