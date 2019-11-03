@@ -201,18 +201,29 @@ struct
 
   let reachable_locs : (loc list) ref = ref []
   
-  (* TODO : Complete this function.
-   * Implement the GC algorithm introduced in class material.
-   *)
   let malloc_with_gc s m e c k =
     if List.length m < mem_limit then
       let _ = loc_id := !loc_id + 1 in
       ((!loc_id, 0), m)
     else
       let _ = reachable_locs := [] in
-      (* TODO : Add the code that marks the reachable locations.
-       * let _ = ... 
-       *)
+      let rec gc_s : stack -> unit = function
+        | [] -> ()
+        | M (_, Loc loc) :: s_tl -> reachable_locs := loc :: !reachable_locs; gc_s s_tl
+        | _ :: s_tl -> gc_s s_tl
+      in
+      let _ = gc_s s in
+      let rec gc_e : environment -> unit = function
+        | [] -> ()
+        | (_, Loc loc) :: e_tl -> reachable_locs := loc :: !reachable_locs; gc_e e_tl
+        | _ :: e_tl -> gc_e e_tl
+      in
+      let _ = gc_e e in
+      let rec gc_k : continuation -> unit = function
+        | [] -> ()
+        | (_, e) :: k_tl -> gc_e e; gc_k k_tl
+      in
+      let _ = gc_k k in
       let new_m = List.filter (fun (l, _) -> List.mem l !reachable_locs) m in
       if List.length new_m < mem_limit then
         let _ = loc_id := !loc_id + 1 in
