@@ -21,7 +21,8 @@ sig
     | UNBIND
     | GET 
     | PUT 
-    | CALL 
+    | CALL
+    | CALLTAIL
     | ADD 
     | SUB 
     | MUL 
@@ -67,6 +68,7 @@ struct
     | GET 
     | PUT 
     | CALL 
+    | CALLTAIL
     | ADD 
     | SUB 
     | MUL 
@@ -123,6 +125,7 @@ struct
     | GET -> "get"
     | PUT -> "put"
     | CALL -> "call"
+    | CALLTAIL -> "calltail"
     | ADD -> "add"
     | SUB -> "sub"
     | MUL -> "mul"
@@ -283,6 +286,8 @@ struct
     | (s, m, (x, ev) :: e, UNBIND :: c, k) -> (M (x, ev) :: s, m, e, c, k)
     | (V (L l) :: V v :: P (x, c', e') :: s, m, e, CALL :: c, k) ->
       (s, store l v m, (x, Loc l) :: e', c', (c, e) :: k)
+    | (V (L l) :: V v :: P (x, c', e') :: s, m, e, CALLTAIL :: c, k) ->
+      (s, store l v m, (x, Loc l) :: e', c', k)
     | (s, m, e, [], (c, e') :: k) -> (s, m, e', c, k)
     | (s, m, e, GET :: c, k) -> (V (Z (read_int())) :: s, m, e, c, k)
     | (V (Z z) :: s, m, e, PUT :: c, k) -> 
