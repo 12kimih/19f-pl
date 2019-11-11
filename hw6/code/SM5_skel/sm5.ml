@@ -141,7 +141,7 @@ struct
   and command_to_str indent comm = 
     indent ^ "[" ^ 
     (String.concat (";\n" ^ indent) (List.map (cmd_to_str indent) comm)) ^ "]"
-  
+
   let rec proc_to_str indent (x, comm, env) =
     let new_indent = ("  " ^ indent) in
     let comm_str = command_to_str new_indent comm in
@@ -171,7 +171,7 @@ struct
       Printf.sprintf "%s : %s" (loc_to_str l) (val_to_str v)
     in
     String.concat "\n" (List.map entry_to_str m)
-  
+
   let cont_to_str k = 
     let entry_to_str (comm, env) = 
       let comm_str = command_to_str "  " comm in
@@ -188,7 +188,7 @@ struct
 
   let load l m = 
     try List.assoc l m with 
-    Not_found -> raise (Error ("Uninitialized location : %s" ^ (loc_to_str l)))
+      Not_found -> raise (Error ("Uninitialized location : %s" ^ (loc_to_str l)))
 
   let store l v m = 
     if List.mem_assoc l m then 
@@ -200,30 +200,63 @@ struct
   let loc_id = ref 0
 
   let reachable_locs : (loc list) ref = ref []
-  
+
   let malloc_with_gc s m e c k =
     if List.length m < mem_limit then
       let _ = loc_id := !loc_id + 1 in
       ((!loc_id, 0), m)
     else
       let _ = reachable_locs := [] in
-      let rec gc_s : stack -> unit = function
+
+      let rec gc_loc loc m =
+        reachable_locs := loc :: !reachable_locs;
+        gc_offset loc m m;
+        match List.assoc loc m with
+        | L l -> gc_loc l m
+        | R r -> gc_record r m
+        | _ -> ()
+      and gc_offloc loc m =
+        reachable_locs := loc :: !reachable_locs;
+        match List.assoc loc m with
+        | L l -> gc_loc l m
+        | R r -> gc_record r m
+        | _ -> ()
+      and gc_record r m =
+        match r with
         | [] -> ()
-        | M (_, Loc loc) :: s_tl -> reachable_locs := loc :: !reachable_locs; gc_s s_tl
-        | _ :: s_tl -> gc_s s_tl
-      in
-      let _ = gc_s s in
-      let rec gc_e : environment -> unit = function
+        | (_, loc) :: r_tl -> gc_loc loc m; gc_record r_tl m
+      and gc_offset (base, offset) mem m =
+        match mem with
         | [] -> ()
-        | (_, Loc loc) :: e_tl -> reachable_locs := loc :: !reachable_locs; gc_e e_tl
-        | _ :: e_tl -> gc_e e_tl
+        | ((mem_base, mem_offset), _) :: mem_tl ->
+          if base = mem_base && offset <> mem_offset
+          then (gc_offloc (mem_base, mem_offset) m; gc_offset (base, offset) mem_tl m)
+          else gc_offset (base, offset) mem_tl m
       in
-      let _ = gc_e e in
-      let rec gc_k : continuation -> unit = function
+
+      let rec gc_stack s m =
+        match s with
         | [] -> ()
-        | (_, e) :: k_tl -> gc_e e; gc_k k_tl
+        | V (L l) :: s_tl -> gc_loc l m; gc_stack s_tl m
+        | V (R r) :: s_tl -> gc_record r m; gc_stack s_tl m
+        | M (_, Loc loc) :: s_tl -> gc_loc loc m; gc_stack s_tl m
+        | _ :: s_tl -> gc_stack s_tl m
       in
-      let _ = gc_k k in
+      let _ = gc_stack s m in
+      let rec gc_env e m =
+        match e with
+        | [] -> ()
+        | (_, Loc loc) :: e_tl -> gc_loc loc m; gc_env e_tl m
+        | _ :: e_tl -> gc_env e_tl m
+      in
+      let _ = gc_env e m in
+      let rec gc_cont k m =
+        match k with
+        | [] -> ()
+        | (_, e) :: k_tl -> gc_env e m; gc_cont k_tl m
+      in
+      let _ = gc_cont k m in
+
       let new_m = List.filter (fun (l, _) -> List.mem l !reachable_locs) m in
       if List.length new_m < mem_limit then
         let _ = loc_id := !loc_id + 1 in
@@ -257,8 +290,8 @@ struct
     | (s, m, e, PUSH (Val v) :: c, k) -> (V v :: s, m, e, c, k)
     | (s, m, e, PUSH (Id x) :: c, k) ->
       (match lookup_env x e with
-      | Loc l -> (V (L l) :: s, m, e, c, k)
-      | Proc p -> (P p :: s, m, e, c, k))
+       | Loc l -> (V (L l) :: s, m, e, c, k)
+       | Proc p -> (P p :: s, m, e, c, k))
     | (s, m, e, PUSH (Fn (x, c')) :: c, k) -> (P (x, c',e)::s, m, e, c, k)
     | (w :: s, m, e, POP :: c , k) -> (s, m, e, c, k)
     | (V (L l) :: V v :: s, m, e, STORE :: c, k) -> (s, store l v m, e, c, k)
@@ -320,26 +353,25 @@ struct
     | [], [] -> ()
     | _ -> 
       let _ = if !debug_mode then
-        (print_endline "====== Machine state ======";
-        print_newline();
-        print_endline "***** Command *****";
-        print_endline (command_to_str "" c);
-        print_newline();
-        print_endline "***** Stack *****";
-        print_endline (stack_to_str s);
-        print_newline();
-        print_endline "***** Environment *****";
-        print_endline (env_to_str "" e);
-        print_newline();
-        print_endline "***** Memory *****";
-        print_endline (mem_to_str m);
-        print_newline();
-        print_endline "***** Continuation *****";
-        print_endline (cont_to_str k);
-        print_newline())
+          (print_endline "====== Machine state ======";
+           print_newline();
+           print_endline "***** Command *****";
+           print_endline (command_to_str "" c);
+           print_newline();
+           print_endline "***** Stack *****";
+           print_endline (stack_to_str s);
+           print_newline();
+           print_endline "***** Environment *****";
+           print_endline (env_to_str "" e);
+           print_newline();
+           print_endline "***** Memory *****";
+           print_endline (mem_to_str m);
+           print_newline();
+           print_endline "***** Continuation *****";
+           print_endline (cont_to_str k);
+           print_newline())
       in
       run_helper (step (s, m, e, c, k))
 
   let run c = run_helper ([], [], [], c, []) 
-
 end
