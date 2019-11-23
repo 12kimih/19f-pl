@@ -220,19 +220,23 @@ let rec run_helper (s, m, e, c) =
   | [] -> ()
   | _ -> 
     let _ = if !debug_mode then
+    (*
       let _ = print_endline "====== Machine state ======" in
       let _ = print_newline() in
+      *)
       let _ = print_endline "***** Command *****" in
       let _ = print_endline (command_to_str "" c) in
       let _ = print_newline() in
       let _ = print_endline "***** Stack *****" in
       let _ = print_endline (stack_to_str s) in
       let _ = print_newline() in
+      (*
       let _ = print_endline "***** Environment *****" in
       let _ = print_endline (env_to_str "" e) in
       let _ = print_newline() in
       let _ = print_endline "***** Memory *****" in
       let _ = print_endline (mem_to_str m) in
+      *)
       print_newline()
     in
     run_helper (step (s, m, e, c))

@@ -32,35 +32,37 @@ let rec alpha_conv exp subst =
   | Fst e -> Fst (alpha_conv e subst)
   | Snd e -> Snd (alpha_conv e subst)
 
-(* TODO : Complete this function *)
 let rec cps' exp = 
   let k = new_name () in
   match exp with
   (* Constant expressions *)
-  | Num n -> Fn (k, (* Fill in here *) )
-  | Var x -> Fn (k, (* Fill in here *) )
-  | Fn (x, e) -> Fn (k, (* Fill in here *) )
-  | Rec (f, x, e) -> Fn (k, (* Fill in here *) )
+  | Num n -> Fn (k, App (Var k, Num n))
+  | Var x -> Fn (k, App (Var k, Var x))
+  | Fn (x, e) -> Fn (k, App (Var k, Fn (x, e)))
+  | Rec (f, x, e) -> Fn (k, App (Var k, Rec (f, x, e)))
   (* Non constant expressions *)
-  | App (e1, e2) -> Fn (k, (* Fill in here *) )
-  | Ifz (e1, e2, e3) -> Fn (k, (* Fill in here *) )
+  | App (e1, e2) ->
+    let v1 = new_name () in
+    let v2 = new_name () in
+    Fn (k, App (cps' e1, Fn (v1, App (cps' e2, Fn (v2, App (Var k, App (Var v1, Var v2)))))))
+  | Ifz (e1, e2, e3) ->
+    let v1 = new_name () in
+    let v2 = new_name () in
+    let v3 = new_name () in
+    Fn (k, App (cps' e1, Fn (v1, App (cps' e2, Fn (v2, App (cps' e3, Fn (v3, App (Var k, Ifz (Var v1, Var v2, Var v3)))))))))
   | Add (e1, e2) ->
     let v1 = new_name () in
     let v2 = new_name () in
-    Fn (k, 
-        App (cps' e1, 
-            Fn (v1, 
-                App (cps' e2, 
-                    Fn (v2, 
-                        App (Var k, Add (Var v1, Var v2))
-                        )
-                    )
-                )
-            )
-        )
-  | Pair (e1, e2) -> Fn (k, (* Fill in here *) )
-  | Fst e ->  Fn (k, (* Fill in here *) )
-  | Snd e ->  Fn (k, (* Fill in here *) )
+    Fn (k, App (cps' e1, Fn (v1, App (cps' e2, Fn (v2, App (Var k, Add (Var v1, Var v2)))))))
+  | Pair (e1, e2) ->
+    let v1 = new_name () in
+    let v2 = new_name () in
+    Fn (k, App (cps' e1, Fn (v1, App (cps' e2, Fn (v2, App (Var k, Pair (Var v1, Var v2)))))))
+  | Fst e ->
+    let v = new_name () in
+    Fn (k, App (cps' e, Fn (v, App (Var k, Fst (Var v)))))
+  | Snd e ->
+    let v = new_name () in
+    Fn (k, App (cps' e, Fn (v, App (Var k, Snd (Var v)))))
 
 let cps exp = cps' (alpha_conv exp [])
-

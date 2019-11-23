@@ -133,8 +133,13 @@ struct
     | SUB -> (fun (v1,v2) -> Int (getInt v1 - getInt v2))
     | AND -> (fun (v1,v2) -> Bool (getBool v1 && getBool v2))
     | OR ->  (fun (v1,v2) -> Bool (getBool v1 || getBool v2))
-    | EQ -> (* TODO : implement this *)
-      failwith "Unimplemented"
+    | EQ -> (fun (v1, v2) -> 
+      (match (v1, v2) with
+      | (Int n1, Int n2) -> Bool (n1 = n2)
+      | (String s1, String s2) -> Bool (s1 = s2)
+      | (Bool b1, Bool b2) -> Bool (b1 = b2)
+      | (Loc l1, Loc l2) -> Bool (l1 = l2)
+      | _ -> raise (TypeError "Comparison between wrong types")))
 
   let rec printValue =
     function 
@@ -156,8 +161,13 @@ struct
       let (c, env') = getClosure v1 in
       (match c with 
       | Fun (x, e) -> eval (env' @+ (x, v2)) m'' e
-      | RecFun (f, x, e) ->  (* TODO : implement this *)
-        failwith "Unimplemented")
+      | RecFun (f, x, e) -> eval ((env' @+ (x, v2)) @+ (f, Closure (c, env'))) m'' e)
+    | LET (d, e2) ->
+      (match d with
+      | REC (fun_id, arg_id, body) -> eval (env @+ (fun_id, Closure (RecFun (fun_id, arg_id, body), env))) mem e2
+      | VAL (val_id, e1) ->
+        let (v1, m') = eval env mem e1 in
+        eval (env @+ (val_id, v1)) m' e2)
     | IF (e1, e2, e3) ->
       let (v1, m') = eval env mem e1 in
       eval env m' (if getBool v1 then e2 else e3)
@@ -172,6 +182,23 @@ struct
       let (v, m') = eval env mem e in
       let _ = printValue v in
       (v, m')
+    | MALLOC e ->
+      let (v, m') = eval env mem e in
+      let (l, m'') = malloc m' in
+      let m''' = store m'' (l, v) in
+      (Loc l, m''')
+    | ASSIGN (e1, e2) ->
+      let (v1, m') = eval env mem e1 in
+      let l = getLoc v1 in
+      let (v2, m'') = eval env m' e2 in
+      (v2, store m'' (l, v2))
+    | BANG e ->
+      let (v, m') = eval env mem e in
+      let l = getLoc v in
+      (load m' l, m')
+    | SEQ (e1, e2) ->
+      let (v1, m') = eval env mem e1 in
+      eval env m' e2
     | PAIR (e1, e2) -> 
       let (v1, m') = eval env mem e1 in
       let (v2, m'') = eval env m' e2 in
@@ -182,8 +209,6 @@ struct
     | SND e -> 
       let (v, m') = eval env mem e in
       (snd (getPair v), m')
-    (* TODO : complete the rest of interpreter *)
-    | _ -> failwith "Unimplemented"
 
   let emptyEnv = (fun x -> raise (RunError ("unbound id: " ^ x)))
 
@@ -191,7 +216,6 @@ struct
     (0, fun l -> raise (RunError ("uninitialized loc: " ^ string_of_int l)))
 
   let run exp = ignore (eval emptyEnv emptyMem exp)
-
 end
 
 module type M_TypeChecker = sig
