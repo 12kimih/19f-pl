@@ -162,12 +162,10 @@ struct
       (match c with 
       | Fun (x, e) -> eval (env' @+ (x, v2)) m'' e
       | RecFun (f, x, e) -> eval ((env' @+ (x, v2)) @+ (f, Closure (c, env'))) m'' e)
-    | LET (d, e2) ->
-      (match d with
-      | REC (fun_id, arg_id, body) -> eval (env @+ (fun_id, Closure (RecFun (fun_id, arg_id, body), env))) mem e2
-      | VAL (val_id, e1) ->
-        let (v1, m') = eval env mem e1 in
-        eval (env @+ (val_id, v1)) m' e2)
+    | LET (REC (fun_id, arg_id, e1), e2) -> eval (env @+ (fun_id, Closure (RecFun (fun_id, arg_id, e1), env))) mem e2
+    | LET (VAL (val_id, e1), e2) ->
+      let (v1, m') = eval env mem e1 in
+      eval (env @+ (val_id, v1)) m' e2
     | IF (e1, e2, e3) ->
       let (v1, m') = eval env mem e1 in
       eval env m' (if getBool v1 then e2 else e3)
