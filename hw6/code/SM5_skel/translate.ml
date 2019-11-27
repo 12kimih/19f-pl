@@ -23,17 +23,17 @@ module Translator = struct
     | K.SEQ (e1, e2) -> trans e1 @ [Sm5.POP] @ trans e2
     | K.IF (e_cond, e_true, e_false) -> trans e_cond @ [Sm5.JTR (trans e_true, trans e_false)]
     | K.WHILE (e_cond, e_body) ->
-      trans (K.LETV ("#x", K.UNIT, K.LETF ("#f", "#x", K.IF (e_cond, K.SEQ (e_body, K.CALLR ("#f", "#x")), K.UNIT), K.CALLR ("#f", "#x"))))
+      trans (K.LETF ("#while_f", "#x", K.IF (e_cond, K.SEQ (e_body, K.CALLR ("#while_f", "#x")), K.UNIT), K.CALLV ("#while_f", K.UNIT)))
     | K.FOR (id, e1, e2, e_body) ->
       trans (K.LETV ("#i", e1, K.LETV ("#end", e2, K.WHILE (K.NOT (K.LESS (K.VAR "#end", K.VAR "#i")), K.SEQ (K.ASSIGN (id, K.VAR "#i"), K.SEQ (e_body, K.ASSIGN ("#i", K.ADD (K.VAR "#i", K.NUM 1))))))))
     | K.LETV (x, e1, e2) ->
       trans e1 @ [Sm5.MALLOC; Sm5.BIND x; Sm5.PUSH (Sm5.Id x); Sm5.STORE] @
       trans e2 @ [Sm5.UNBIND; Sm5.POP]
     | K.LETF (f, x, e1, e2) ->
-      [Sm5.PUSH (Sm5.Fn (x, [Sm5.BIND f] @ trans e1)); Sm5.BIND f] @
+      [Sm5.PUSH (Sm5.Fn (x, [Sm5.BIND f] @ trans e1 @ [Sm5.UNBIND; Sm5.POP])); Sm5.BIND f] @
       trans e2 @ [Sm5.UNBIND; Sm5.POP]
     | K.CALLV (f, arg_exp) -> [Sm5.PUSH (Sm5.Id f); Sm5.PUSH (Sm5.Id f)] @ trans arg_exp @ [Sm5.MALLOC; Sm5.CALL]
     | K.CALLR (f, arg_var) -> [Sm5.PUSH (Sm5.Id f); Sm5.PUSH (Sm5.Id f); Sm5.PUSH (Sm5.Id arg_var); Sm5.LOAD; Sm5.PUSH (Sm5.Id arg_var); Sm5.CALL]
     | K.READ x -> [Sm5.GET; Sm5.PUSH (Sm5.Id x); Sm5.STORE; Sm5.PUSH (Sm5.Id x); Sm5.LOAD]
-    | K.WRITE e -> trans e @ [Sm5.MALLOC; Sm5.BIND "#w"; Sm5.PUSH (Sm5.Id "#w"); Sm5.STORE; Sm5.PUSH (Sm5.Id "#w"); Sm5.LOAD; Sm5.PUT; Sm5.PUSH (Sm5.Id "#w"); Sm5.LOAD; Sm5.UNBIND; Sm5.POP]
+    | K.WRITE e -> [Sm5.MALLOC; Sm5.BIND "#write_var"] @ trans e @ [Sm5.PUSH (Sm5.Id "#write_var"); Sm5.STORE; Sm5.PUSH (Sm5.Id "#write_var"); Sm5.LOAD; Sm5.PUT; Sm5.PUSH (Sm5.Id "#write_var"); Sm5.LOAD; Sm5.UNBIND; Sm5.POP]
 end
