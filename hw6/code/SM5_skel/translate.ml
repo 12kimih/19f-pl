@@ -25,7 +25,7 @@ module Translator = struct
     | K.WHILE (e_cond, e_body) ->
       trans (K.LETV ("#x", K.UNIT, K.LETF ("#f", "#x", K.IF (e_cond, K.SEQ (e_body, K.CALLR ("#f", "#x")), K.UNIT), K.CALLR ("#f", "#x"))))
     | K.FOR (id, e1, e2, e_body) ->
-      trans (K.LETV ("#e1", e1, K.LETV ("#e2", e2, K.LETF ("#f", "#x", K.IF (K.LESS (K.VAR "#e2", K.VAR "#x"), K.UNIT, K.SEQ (e_body, K.SEQ (K.ASSIGN ("#x", K.ADD (K.VAR "#x", K.NUM 1)), K.CALLR ("#f", "#x")))), K.SEQ (K.ASSIGN (id, K.VAR "#e1"), K.CALLR ("#f", id))))))
+      trans (K.LETV ("#i", e1, K.LETV ("#end", e2, K.WHILE (K.NOT (K.LESS (K.VAR "#end", K.VAR "#i")), K.SEQ (K.ASSIGN (id, K.VAR "#i"), K.SEQ (e_body, K.ASSIGN ("#i", K.ADD (K.VAR "#i", K.NUM 1))))))))
     | K.LETV (x, e1, e2) ->
       trans e1 @ [Sm5.MALLOC; Sm5.BIND x; Sm5.PUSH (Sm5.Id x); Sm5.STORE] @
       trans e2 @ [Sm5.UNBIND; Sm5.POP]

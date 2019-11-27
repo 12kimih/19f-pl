@@ -1,0 +1,7 @@
+(* 4. Result of WRITE expression *)
+
+let x := 0 in
+read x;
+write((write((write(x)) + 5)) - 10)
+
+(* input: 20, 20\n25\n15\n *)
