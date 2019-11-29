@@ -28,13 +28,12 @@ and trans' : Sm5.command -> Sonata.command = function
   | Sm5.GET :: cmds -> Sonata.GET :: (trans' cmds)
   | Sm5.PUT :: cmds -> Sonata.PUT :: (trans' cmds)
   | Sm5.CALL :: cmds ->
-    [Sonata.PUSH (Sonata.Fn ("#arg", trans' cmds)); Sonata.BIND "#cont";
-    Sonata.MALLOC; Sonata.BIND "#l"; Sonata.PUSH (Sonata.Id "#l"); Sonata.STORE;
-    Sonata.MALLOC; Sonata.BIND "#v"; Sonata.PUSH (Sonata.Id "#v"); Sonata.STORE;
-    Sonata.BIND "#f"; Sonata.PUSH (Sonata.Id "#cont");
+    [Sonata.PUSH (Sonata.Fn ("#arg", trans' cmds)); Sonata.BIND "#cont"; Sonata.BIND "#l";
+    Sonata.MALLOC; Sonata.BIND "#v"; Sonata.PUSH (Sonata.Id "#v"); Sonata.STORE; Sonata.BIND "#f";
+    Sonata.PUSH (Sonata.Id "#cont");
     Sonata.PUSH (Sonata.Id "#f");
     Sonata.PUSH (Sonata.Id "#v"); Sonata.LOAD;
-    Sonata.PUSH (Sonata.Id "#l"); Sonata.LOAD;
+    Sonata.PUSH (Sonata.Id "#l");
     Sonata.CALL]
   | Sm5.ADD :: cmds -> Sonata.ADD :: (trans' cmds)
   | Sm5.SUB :: cmds -> Sonata.SUB :: (trans' cmds)
@@ -59,13 +58,12 @@ let rec trans : Sm5.command -> Sonata.command = function
   | Sm5.GET :: cmds -> Sonata.GET :: (trans cmds)
   | Sm5.PUT :: cmds -> Sonata.PUT :: (trans cmds)
   | Sm5.CALL :: cmds ->
-    [Sonata.PUSH (Sonata.Fn ("#arg", trans cmds)); Sonata.BIND "#cont";
-    Sonata.MALLOC; Sonata.BIND "#l"; Sonata.PUSH (Sonata.Id "#l"); Sonata.STORE;
-    Sonata.MALLOC; Sonata.BIND "#v"; Sonata.PUSH (Sonata.Id "#v"); Sonata.STORE;
-    Sonata.BIND "#f"; Sonata.PUSH (Sonata.Id "#cont");
+    [Sonata.PUSH (Sonata.Fn ("#arg", trans cmds)); Sonata.BIND "#cont"; Sonata.BIND "#l";
+    Sonata.MALLOC; Sonata.BIND "#v"; Sonata.PUSH (Sonata.Id "#v"); Sonata.STORE; Sonata.BIND "#f";
+    Sonata.PUSH (Sonata.Id "#cont");
     Sonata.PUSH (Sonata.Id "#f");
     Sonata.PUSH (Sonata.Id "#v"); Sonata.LOAD;
-    Sonata.PUSH (Sonata.Id "#l"); Sonata.LOAD;
+    Sonata.PUSH (Sonata.Id "#l");
     Sonata.CALL]
   | Sm5.ADD :: cmds -> Sonata.ADD :: (trans cmds)
   | Sm5.SUB :: cmds -> Sonata.SUB :: (trans cmds)

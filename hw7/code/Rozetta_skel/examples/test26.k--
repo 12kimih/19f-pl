@@ -1,0 +1,20 @@
+(* 7. FOR-FOR-FOR loop *) 
+
+let x := 0 in
+read x;
+let i := 0 in
+let j := 0 in
+let k := 0 in
+while (i < x) do (
+  for j := 1 to 1 do (
+    for k := 1 to 1 do (
+      unit
+    )
+  );
+  i := i + 1
+); 
+write(i);
+write(j);
+write(k)
+
+(* input: 10, 10\n1\n1\n *)

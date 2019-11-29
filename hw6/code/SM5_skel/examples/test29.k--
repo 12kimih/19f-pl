@@ -1,0 +1,12 @@
+(* 7. FOR-FOR-FOR loop *) 
+
+let i := 0 in
+let j := 0 in
+for i := 1 to 1 do (
+  for j := 1 to 1 do (
+    unit
+  )
+);
+write(i)
+
+(* 1\n *)

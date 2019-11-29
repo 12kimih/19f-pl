@@ -1,0 +1,17 @@
+(* 7. FOR-FOR-FOR loop *) 
+
+let i := 0 in
+let j := 0 in
+let k := 0 in
+while (i < 1) do (
+  while (j < 1) do (
+    while (k < 1) do (
+      k := k + 1
+    );
+    j := j + 1
+  );
+  i := i + 1
+);
+write(i)
+
+(* 1\n *)
