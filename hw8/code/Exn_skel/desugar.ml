@@ -33,31 +33,24 @@ let rec cps : xexp -> xexp = fun e ->
   (* Constant expressions *)
   | Num n -> Fn (k, Fn (h, App (Var k, Num n)))
   | Var x -> Fn (k, Fn (h, App (Var k, Var x)))
-  | Fn (x, e) ->
-    let v = new_name () in
-    Fn (k, Fn (h, App (Var k, Fn (x, App (App (cps e, Fn (v, Var v)), Var h)))))
+  | Fn (x, e) -> Fn (k, Fn (h, App (Var k, Fn (x, cps e))))
   (* Non constant expressions *)
   | App (e1, e2) ->
     let v1 = new_name () in
     let v2 = new_name () in
-    Fn (k, Fn (h, App (App (cps e1, Fn (v1, App (App (cps e2, Fn (v2, App (Var k, App (Var v1, Var v2)))), Var h))), Var h)))
+    Fn (k, Fn (h, App (App (cps e1, Fn (v1, App (App (cps e2, Fn (v2, App (App (App (Var v1, Var v2), Var k), Var h))), Var h))), Var h)))
   | If (e1, e2, e3) ->
-    let v1 = new_name () in
-    let v2 = new_name () in
-    let v3 = new_name () in
-    Fn (k, Fn (h, App (App (cps e1, Fn (v1, If (Var v1, App (App (cps e2, Fn (v2, App (Var k, Var v2))), Var h), App (App (cps e3, Fn (v3, App (Var k, Var v3))), Var h)))), Var h)))
+    let v = new_name () in
+    Fn (k, Fn (h, App (App (cps e1, Fn (v, If (Var v, App (App (cps e2, Var k), Var h), App (App (cps e3, Var k), Var h)))), Var h)))
   | Equal (e1, e2) ->
     let v1 = new_name () in
     let v2 = new_name () in
     Fn (k, Fn (h, App (App (cps e1, Fn (v1, App (App (cps e2, Fn (v2, App (Var k, Equal (Var v1, Var v2)))), Var h))), Var h)))
   | Raise e ->
-    let v = new_name () in
-    Fn (k, Fn (h, App (App (cps e, Fn (v, App (Var h, Var v))), Var h)))
+    Fn (k, Fn (h, App (App (cps e, Var h), Var h)))
   | Handle (e1, n, e2) ->
-    let v1 = new_name () in
-    let v2 = new_name () in
-    let v3 = new_name () in
-    Fn (k, Fn (h, App (App (cps e1, Fn (v1, App (Var k, Var v1))), Fn (v2, If (Equal (Var v2, Num n), App (App (cps e2, Fn (v3, App (Var k, Var v3))), Var h), App (Var h, Var v2))))))
+    let v = new_name () in
+    Fn (k, Fn (h, App (App (cps e1, Var k), Fn (v, If (Equal (Var v, Num n), App (App (cps e2, Var k), Var h), App (Var h, Var v))))))
 
 let removeExn : xexp -> xexp = fun e ->
   let v1 = new_name () in
