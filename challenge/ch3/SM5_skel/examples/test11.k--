@@ -1,8 +1,0 @@
-(* test case - tail recursive function *)
-
-let proc f(n) =
-  if n < 0
-  then 1
-  else f(n - 1)
-in
-f(5)
